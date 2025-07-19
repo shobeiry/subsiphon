@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "microbundle build && cpx package.json dist && cpx README.md dist && cpx LICENSE dist",
+    "build": "microbundle build",
     "dev": "microbundle watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -36,5 +36,8 @@
   },
   "peerDependencies": {
     "rxjs": "^7.0.0"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
