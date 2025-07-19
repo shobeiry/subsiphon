@@ -1,0 +1,40 @@
+{
+  "name": "subsiphon",
+  "version": "1.0.0",
+  "description": "RxJS subscription manager",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "microbundle build && cpx package.json dist && cpx README.md dist && cpx LICENSE dist",
+    "dev": "microbundle watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sssh",
+  "license": "MIT",
+  "keywords": [
+    "rxjs",
+    "subscription",
+    "subscribe",
+    "unsubscribe",
+    "sub",
+    "siphon",
+    "subsiphon",
+    "angular",
+    "angular subscribtion"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "cpx": "^1.5.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
+    "microbundle": "^0.15.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.0.0"
+  }
+}
