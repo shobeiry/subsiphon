@@ -26,9 +26,7 @@ sub.siphon["myNamedSubscription2"] = interval(2000).subscribe(val => console.log
 // Access subscriptions
 console.log('Array of subscriptions:', sub.siphon);
 console.log('First subscription:', sub.siphon[0]);
-console.log('Object of subscriptions:', sub.getObject);
 console.log('Named subscription:', sub.siphon.myNamedSubscription);
-console.log('Combined array and object of subscriptions:', sub.getAll);
 
 // Unsubscribe all objects
 sub.unsubscribe();
