@@ -1,13 +1,14 @@
 {
   "name": "subsiphon",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "RxJS subscription manager",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "microbundle build",
     "dev": "microbundle watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "repository": "https://github.com/shobeiry/subsiphon",
   "author": "sssh",
@@ -24,6 +25,7 @@
     "angular subscribtion"
   ],
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.14",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
@@ -31,8 +33,10 @@
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
+    "jest": "^30.0.4",
     "microbundle": "^0.15.1",
     "prettier": "^3.6.2",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
