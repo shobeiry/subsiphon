@@ -35,25 +35,112 @@ sub.unsubscribe();
 sub.destroy();
 ```
 
-It can also be used as a service in Angular, like the code below:
+### Angular Integration
+You can use `SubSiphon` as a service:
 
 ```typescript
-import {Injectable} from '@angular/core';
+import { Injectable } from "@angular/core";
+import { SubSiphon } from "subsiphon";
 
 @Injectable()
 export class SubSiphonService extends SubSiphon {
 }
 ```
 
+#### Siphon Decorator
+You can use the `@Siphon()` decorator to automatically unsubscribe from properties (even arrays of subscriptions) when a component or service is destroyed:
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { interval, Subscription } from 'rxjs';
+import { Siphon } from 'subsiphon';
+
+@Siphon({
+  log: true,
+  exclude: ['keepAlive']
+})
+@Component({
+  selector: 'app-demo',
+  template: `Check console for log`,
+})
+export class DemoComponent implements OnInit {
+  intervalSub?: Subscription;
+  list: Subscription[] = [];
+  keepAlive?: Subscription;
+
+  ngOnInit(): void {
+    this.intervalSub = interval(1000).subscribe(console.log);
+
+    this.list.push(
+      interval(2000).subscribe(val => console.log('A', val)),
+      interval(3000).subscribe(val => console.log('B', val))
+    );
+
+    this.keepAlive = interval(4000).subscribe(val => console.log('KeepAlive', val));
+  }
+
+  ngOnDestroy(): void {
+    console.log('Component destroyed');
+  }
+}
+
+```
+
+##### Decorator Options
+```typescript
+@Siphon(options?: {
+  include?: string[];
+  exclude?: string[];
+  log?: boolean;
+})
+```
+##### Behavior
+- include: Only unsubscribe the listed properties.
+- exclude: Exclude these properties from unsubscribing.
+- log: Log each unsubscribed property to the console.
+- If a property is an array, each element is checked for .unsubscribe() and handled accordingly.
+
+#### siphon Pipe Operator
+
+You can also use the `siphon()` RxJS operator in any stream inside Angular components or services. It automatically unsubscribes from the observable when the component is destroyed:
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { interval } from 'rxjs';
+import { siphon } from 'subsiphon';
+
+@Component({
+  selector: 'app-stream',
+  template: `<p>Streaming...</p>`
+})
+export class StreamComponent implements OnInit {
+  ngOnInit(): void {
+    interval(1000)
+      .pipe(siphon(this))
+      .subscribe(val => console.log('Tick:', val));
+  }
+
+  ngOnDestroy(): void {
+    console.log('StreamComponent destroyed');
+  }
+}
+
+```
+
+No need to manually manage a `destroy$` subject or call `unsubscribe()`.
+
+
+
 ## Features
 
 `SubSiphon` offers a flexible way to manage your RxJS `Subscriptions`, allowing you to group and manipulate them in a way that makes sense for your application:
 
-- Array and Object Management: You can add `Subscriptions` both as array elements (using `siphon.siphon = sub`) and as named properties (like `siphon.siphon.mySub = sub`).
-- Internal Proxy: `SubSiphon` uses a Proxy to transparently manage the addition and access of `Subscriptions`.
-- Non-Subscription Value Warning: If you attempt to add a non-Subscription value, a warning message will be logged to the console.
-- `unsubscribe()`: This method unsubscribes all added `Subscriptions`, stopping their data streams.
-- `destroy()`: In addition to unsubscribing, this method removes all `Subscriptions` from the `SubSiphon`, returning it to its initial state.
+- ✅ Add subscriptions as array items or named properties.
+- ✅ Uses a Proxy to manage and track all subscriptions internally.
+- ✅ Warns you if non-Subscription objects are added.
+- ✅ unsubscribe() to stop all active streams.
+- ✅ destroy() to clear and reset all subscriptions.
+- ✅ @Siphon() decorator to automatically unsubscribe on ngOnDestroy.
+- ✅ Supports options to include/exclude specific keys, handle arrays of subscriptions, and enable logging.
 
 ## API
 ### Constructor
