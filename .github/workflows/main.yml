@@ -46,12 +46,16 @@ jobs:
           fi
 
       - name: Create Git tag
+        uses: actions/github-script@v5
         if: env.TAG_EXISTS == 'false'
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ env.VERSION }}',
+              sha: context.sha
+            })
 
       - name: Publish to npm
         if: env.TAG_EXISTS == 'false'
