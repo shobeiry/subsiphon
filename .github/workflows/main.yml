@@ -1,9 +1,8 @@
 name: Main Flow
 
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [created]
 
 permissions:
   contents: write
@@ -48,14 +47,16 @@ jobs:
             echo "TAG_EXISTS=false" >> $GITHUB_ENV
           fi
 
-      - name: Create Git tag
-        if: env.TAG_EXISTS == 'false'
-        run: |
-          git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
-
-      - name: Publish to npm
-        if: env.TAG_EXISTS == 'false'
-        run: npm publish
+  publish-npm:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
