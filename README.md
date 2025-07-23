@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/subsiphon)](https://www.npmjs.com/package/subsiphon)
 [![npm downloads](https://img.shields.io/npm/dm/subsiphon)](https://www.npmjs.com/package/subsiphon)
 [![License](https://img.shields.io/npm/l/subsiphon)](https://github.com/shobeiry/subsiphon/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/shobeiry/subsiphon/branch/main/graph/badge.svg)](https://codecov.io/gh/shobeiry/subsiphon)
+[![codecov](https://codecov.io/gh/shobeiry/subsiphon/branch/master/graph/badge.svg)](https://codecov.io/gh/shobeiry/subsiphon)
 
 
 `SubSiphon` is a TypeScript helper class designed to help you manage multiple RxJS `Subscription` objects in an organized manner. It simplifies adding, accessing, and unsubscribing by combining the functionalities of arrays and objects through a Proxy.
