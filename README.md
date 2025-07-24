@@ -5,56 +5,53 @@
 [![License](https://img.shields.io/npm/l/subsiphon)](https://github.com/shobeiry/subsiphon/blob/master/LICENSE)
 [![codecov](https://codecov.io/gh/shobeiry/subsiphon/branch/master/graph/badge.svg)](https://codecov.io/gh/shobeiry/subsiphon)
 
+`SubSiphon` is a lightweight utility to manage multiple RxJS `Subscription`s. It lets you add subscriptions via numeric indexes or named keys and provides easy `unsubscribe()` and `destroy()` methods to clean them up.
 
-`SubSiphon` is a TypeScript helper class designed to help you manage multiple RxJS `Subscription` objects in an organized manner. It simplifies adding, accessing, and unsubscribing by combining the functionalities of arrays and objects through a Proxy.
+---
+
 ## Installation
 
 ```bash
 npm install subsiphon
 ```
 
-## Usage Example
+---
+
+## Usage
+
+### Basic Example
 
 ```typescript
-import { Subscription, interval } from 'rxjs';
-import { SubSiphon } from 'subsiphon';
+import { interval } from 'rxjs';
+import { createSubSiphon } from 'subsiphon';
 
-const sub = new SubSiphon();
+const siphon = createSubSiphon();
 
-// Add subscriptions as array elements
-sub.siphon = interval(1000).subscribe(val => console.log('Interval 1:', val));
-sub.siphon[1] = interval(500).subscribe(val => console.log('Interval 2:', val));
+// Add subscriptions via index
+siphon[0] = interval(1000).subscribe(val => console.log('Index 0:', val));
 
-// Add subscriptions as named properties
-sub.siphon.myNamedSubscription = interval(1500).subscribe(val => console.log('Named Interval:', val));
-sub.siphon["myNamedSubscription2"] = interval(2000).subscribe(val => console.log('Named Interval2:', val));
+// Add subscriptions via "add" setter (auto-increment index)
+siphon.add = interval(1500).subscribe(val => console.log('Auto index:', val));
+
+// Add named subscriptions
+siphon.anyName1 = interval(500).subscribe(val => console.log('Named:', val));
+siphon.anyName2 = interval(500).subscribe(val => console.log('Named:', val));
 
 // Access subscriptions
-console.log('Array of subscriptions:', sub.siphon);
-console.log('First subscription:', sub.siphon[0]);
-console.log('Named subscription:', sub.siphon.myNamedSubscription);
+console.log('Keys:', Object.keys(siphon)); // ["0", "anyName1", "anyName2"]
 
-// Unsubscribe all objects
-sub.unsubscribe();
+// Unsubscribe all
+siphon.unsubscribe();
 
-// To completely destroy and clear all subscriptions:
-sub.destroy();
+// unsubscribe and clear all and reset
+siphon.destroy();
 ```
 
-### Angular Integration
-You can use `SubSiphon` as a service:
+---
 
-```typescript
-import { Injectable } from "@angular/core";
-import { SubSiphon } from "subsiphon";
+### Angular Decorator
 
-@Injectable()
-export class SubSiphonService extends SubSiphon {
-}
-```
-
-#### Siphon Decorator
-You can use the `@Siphon()` decorator to automatically unsubscribe from properties (even arrays of subscriptions) when a component or service is destroyed:
+Use the `@Siphon()` decorator to automatically unsubscribe properties (including arrays) on `ngOnDestroy`:
 
 ```typescript
 import { Component, OnInit } from '@angular/core';
@@ -62,114 +59,127 @@ import { interval, Subscription } from 'rxjs';
 import { Siphon } from 'subsiphon';
 
 @Siphon({
-  log: true,
-  exclude: ['keepAlive']
+    log: true,
+    exclude: ['keepAlive']
 })
 @Component({
-  selector: 'app-demo',
-  template: `Check console for log`,
+    selector: 'app-demo',
+    template: `Check console for logs`,
 })
 export class DemoComponent implements OnInit {
-  intervalSub?: Subscription;
-  list: Subscription[] = [];
-  keepAlive?: Subscription;
+    intervalSub?: Subscription;
+    keepAlive?: Subscription;
+    list: Subscription[] = [];
 
-  ngOnInit(): void {
-    this.intervalSub = interval(1000).subscribe(console.log);
+    ngOnInit(): void {
+        this.intervalSub = interval(1000).subscribe(console.log);
+        this.keepAlive = interval(4000).subscribe(console.log);
 
-    this.list.push(
-      interval(2000).subscribe(val => console.log('A', val)),
-      interval(3000).subscribe(val => console.log('B', val))
-    );
+        this.list.push(
+            interval(2000).subscribe(console.log),
+            interval(3000).subscribe(console.log)
+        );
+    }
 
-    this.keepAlive = interval(4000).subscribe(val => console.log('KeepAlive', val));
-  }
-
-  ngOnDestroy(): void {
-    console.log('Component destroyed');
-  }
+    ngOnDestroy(): void {
+        console.log('Component destroyed');
+    }
 }
-
 ```
 
-##### Decorator Options
-```typescript
-@Siphon(options?: {
-  include?: string[];
-  exclude?: string[];
-  log?: boolean;
-})
-```
-##### Behavior
-- **include**: Only unsubscribe the listed properties.
-- **exclude**: Exclude these properties from unsubscribing.
-- **log**: Log each unsubscribed property to the console.
-- **If** a property is an array, each element is checked for .unsubscribe() and handled accordingly.
+---
 
-#### siphon Pipe Operator
+### RxJS `siphon` Pipe Operator
 
-You can also use the `siphon()` RxJS operator in any stream inside Angular components or services. It automatically unsubscribes from the observable when the component is destroyed:
+You can also use the `siphon()` pipe operator to auto-unsubscribe observables:
+
 ```typescript
 import { Component, OnInit } from '@angular/core';
 import { interval } from 'rxjs';
 import { siphon } from 'subsiphon';
 
 @Component({
-  selector: 'app-stream',
-  template: `<p>Streaming...</p>`
+    selector: 'app-stream',
+    template: `<p>Streaming...</p>`
 })
 export class StreamComponent implements OnInit {
-  ngOnInit(): void {
-    interval(1000)
-      .pipe(siphon(this))
-      .subscribe(val => console.log('Tick:', val));
-  }
+    ngOnInit(): void {
+        interval(1000)
+            .pipe(siphon(this))
+            .subscribe(val => console.log('Tick:', val));
+    }
 
-  ngOnDestroy(): void {
-    console.log('StreamComponent destroyed');
-  }
+    ngOnDestroy(): void {
+        console.log('Component destroyed');
+    }
 }
-
 ```
 
-No need to manually manage a `destroy$` subject or call `unsubscribe()`.
-
-
+---
 
 ## Features
 
-`SubSiphon` offers a flexible way to manage your RxJS `Subscriptions`, allowing you to group and manipulate them in a way that makes sense for your application:
+* Add subscriptions using numeric indexes or named keys.
+* Auto-increment `add` setter to append subscriptions easily.
+* `unsubscribe()` to stop all active subscriptions.
+* `destroy()` to clear and reset all subscriptions.
+* Decorator `@Siphon()` for automatic Angular lifecycle management.
+* `siphon()` RxJS operator to simplify auto-unsubscription.
 
-- ✅ Add subscriptions as array items or named properties.
-- ✅ Uses a Proxy to manage and track all subscriptions internally.
-- ✅ Warns you if non-Subscription objects are added.
-- ✅ unsubscribe() to stop all active streams.
-- ✅ destroy() to clear and reset all subscriptions.
-- ✅ @Siphon() decorator to automatically unsubscribe on ngOnDestroy.
-- ✅ Supports options to include/exclude specific keys, handle arrays of subscriptions, and enable logging.
+---
 
 ## API
-### Constructor
+
+### `createSubSiphon()`
+
+Factory method to create a proxied `SubSiphon` instance:
+
 ```typescript
-sub = new SubSiphon()
+const siphon = createSubSiphon();
 ```
-Creates a new instance of `SubSiphon`.
 
-### Properties
-- `sub.siphon: Siphon` (setter/getter)
-
-  - Setter: `sub.siphon = sub1: Subscription` - Adds a `Subscription` to the `SubSiphon`. A warning will be issued if `sub1` is not an instance of `Subscription`.
-  - Getter: `sub.siphon: Siphon` - Returns a `Siphon` object, which is a combination of array-like and object-like subscriptions. This allows access to subscriptions by both index (e.g., `siphon.siphon[0]`) and by name (e.g., `siphon.siphon.mySub`).
+---
 
 ### Methods
-- `unsubscribe(): void`
-  - Unsubscribes all active Subscriptions (those not yet `closed`) that have been added to the SubSiphon.
-- `destroy(): void`
-  - Unsubscribes all Subscriptions and then removes all references to them from the `SubSiphon`. This method effectively resets the `SubSiphon` to an empty state.
+
+* **`unsubscribe(): void`**
+
+    * Unsubscribes from all active subscriptions.
+
+* **`destroy(): void`**
+
+    * Unsubscribes and clears all internal references (resets the container).
+
+---
+
+### Adding Subscriptions
+
+#### Numeric
+
+```typescript
+siphon[0] = interval(1000).subscribe();
+```
+
+#### Auto Increment
+
+```typescript
+siphon.add = interval(500).subscribe(); // assigns to first free numeric index
+```
+
+#### Named Keys
+
+```typescript
+siphon.myStream = interval(2000).subscribe();
+```
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to open an issue or submit a pull request.
+Pull requests and suggestions are welcome! Please file issues or submit PRs on [GitHub](https://github.com/shobeiry/subsiphon).
+
+---
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+
+Licensed under the [MIT License](https://github.com/shobeiry/subsiphon/blob/master/LICENSE).
